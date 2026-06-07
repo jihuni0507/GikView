@@ -57,8 +57,16 @@ static void parseSensorString(const char* data) {
 // 메인 루프에서 계속 호출되며 센서 값을 최신화하는 함수
 void update_sensor() {
   // PC에서 입력한 명령어를 센서로 전달 (패스스루)
+  // ★ 단어 쪼개짐 방지: PC의 입력을 한 줄 통째로 모아서 전송
   if (Serial.available()) {
-    sensorSerial.write(Serial.read());
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim(); // 불필요한 공백이나 \r 제거
+    
+    if (cmd.length() > 0) {
+      sensorSerial.print(cmd);       // 명령어 통째로 전송
+      sensorSerial.print("\r\n");    // 센서가 인식하도록 엔터 신호(\r\n) 확실히 추가
+      Serial.println(">>> [PC 전송] " + cmd); // 우리가 보낸 명령어가 뭔지 확인용 로그
+    }
   }
 
   // 문자열 없이 한 글자씩 정적 버퍼에 채워 넣기 (비차단)
